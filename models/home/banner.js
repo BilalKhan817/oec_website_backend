@@ -18,15 +18,34 @@ const bannerSchema = new mongoose.Schema({
     trim: true,
     default: '#FFFFFF' // Default white color
   },
-  banner_subtitle: {
-    type: mongoose.Schema.Types.Mixed, // Can be string or array
-    required: true
+  banner_title_highlight: {
+    text: {
+      type: String,
+      required: false,
+      trim: true
+    },
+    color: {
+      type: String,
+      required: false,
+      trim: true,
+      default: '#FFD700' // Default yellow/gold color
+    }
   },
+ banner_subtitle: {
+  type: mongoose.Schema.Types.Mixed, // Can be string, array, or null
+  required: false // Change this from true to false
+},
   banner_subtitle_type: {
+  type: String,
+  enum: ['text', 'points', 'none'],
+  required: true,
+  default: 'none'
+},
+  support_message: {
     type: String,
-    enum: ['text', 'points'],
-    required: true,
-    default: 'text'
+    required: false,
+    trim: true,
+    default: "Making your overseas journey easier and comfortable with comprehensive support services."
   },
   green_button: {
     type: String,
