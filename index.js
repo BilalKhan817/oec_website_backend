@@ -6,7 +6,7 @@ require('dotenv').config();
 
 // Import routes
 const homeRoutes = require('./routes/home');
-
+const aboutUsRoutes = require("./routes/about-us/index");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -26,7 +26,7 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/announcem
 
 // Routes
 app.use('/api', homeRoutes);
-
+app.use("/api/about-us", aboutUsRoutes);
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   res.status(200).json({
