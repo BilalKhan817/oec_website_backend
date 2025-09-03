@@ -68,6 +68,36 @@ const upload_storage_executives = multer({
     fileSize: 5 * 1024 * 1024 // 5MB limit
   }
 });
+
+
+
+
+const announcements = 'uploads/announcements';
+if (!fs.existsSync(announcements)) {
+  fs.mkdirSync(announcements, { recursive: true });
+}
+
+// Multer configuration for file upload
+const storage_announcements = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, announcements);
+  },
+  filename: function (req, file, cb) {
+    // Generate unique filename with timestamp
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, 'banner-' + uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+
+const upload_announcements = multer({
+  storage: storage_announcements,
+  fileFilter: fileFilter,
+  limits: {
+    fileSize: 5 * 1024 * 1024 // 5MB limit
+  }
+});
+
 /////////////////////////////
 //////// Announcements /////
 ////////////////////////////
@@ -119,7 +149,8 @@ router.get('/announcements/:id', async (req, res) => {
 });
 
 // POST - Create a new announcement
-router.post('/announcements', async (req, res) => {
+// POST - Create a new announcement
+router.post('/announcements', upload_announcements.single('flag'), async (req, res) => {
   try {
     const {
       title,
@@ -131,7 +162,6 @@ router.post('/announcements', async (req, res) => {
       blue_button_link
     } = req.body;
 
-    // Validate required fields
     const requiredFields = [
       'title', 'deadline', 'announcement_category',
       'orange_button_title', 'orange_button_link',
@@ -139,12 +169,11 @@ router.post('/announcements', async (req, res) => {
     ];
 
     const missingFields = requiredFields.filter(field => !req.body[field]);
-    
     if (missingFields.length > 0) {
       return res.status(400).json({
         success: false,
         message: 'Missing required fields',
-        missingFields: missingFields
+        missingFields
       });
     }
 
@@ -156,7 +185,8 @@ router.post('/announcements', async (req, res) => {
       orange_button_title,
       orange_button_link,
       blue_button_title,
-      blue_button_link
+      blue_button_link,
+      flag: req.file ? req.file.path : null // save file path
     });
 
     const savedAnnouncement = await newAnnouncement.save();
@@ -175,35 +205,22 @@ router.post('/announcements', async (req, res) => {
     });
   }
 });
-
 // PUT - Update an announcement by ID
-router.put('/announcements/:id', async (req, res) => {
+router.put('/announcements/:id', upload_announcements.single('flag'), async (req, res) => {
   try {
-    const {
-      title,
-      deadline,
-      announcement_category,
-      orange_button_title,
-      orange_button_link,
-      blue_button_title,
-      blue_button_link
-    } = req.body;
+    const updateData = { ...req.body };
+    console.log(updateData);
+    console.log(req.file);
+    
+
+    if (req.file) {
+      updateData.flag = req.file.path; // update flag image
+    }
 
     const updatedAnnouncement = await Announcement.findByIdAndUpdate(
       req.params.id,
-      {
-        title,
-        deadline: deadline ? new Date(deadline) : undefined,
-        announcement_category,
-        orange_button_title,
-        orange_button_link,
-        blue_button_title,
-        blue_button_link
-      },
-      { 
-        new: true, // Return the updated document
-        runValidators: true // Run schema validators
-      }
+      updateData,
+      { new: true, runValidators: true }
     );
 
     if (!updatedAnnouncement) {
@@ -227,6 +244,7 @@ router.put('/announcements/:id', async (req, res) => {
     });
   }
 });
+
 
 // DELETE - Delete an announcement by ID
 router.delete('/announcements/:id', async (req, res) => {

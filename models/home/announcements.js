@@ -8,8 +8,7 @@ const announcementSchema = new mongoose.Schema({
     trim: true
   },
   deadline: {
-    type: Date,
-    required: true
+    type: String
   },
   announcement_category: {
     type: String,
@@ -35,12 +34,13 @@ const announcementSchema = new mongoose.Schema({
     type: String,
     required: true,
     trim: true
+  },
+  flag: { // <-- new field for uploaded image
+    type: String,
   }
 }, {
-  timestamps: true // Adds createdAt and updatedAt fields
+  timestamps: true
 });
 
-// Announcement Model
 const Announcement = mongoose.model('Announcement', announcementSchema);
-
 module.exports = Announcement;
