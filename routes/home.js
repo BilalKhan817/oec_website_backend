@@ -140,8 +140,8 @@ const getFileType = (mimeType) => {
 };
 
 const processAttachments = (files, attachmentData) => {
-  console.log('Processing attachments - Files:', files?.length || 0);
-  console.log('Processing attachments - Metadata:', attachmentData?.length || 0);
+  console.log('Processing attachments - Files:', files ? files.length : 0);
+  console.log('Processing attachments - Metadata:', attachmentData ? attachmentData.length : 0);
   
   const processedAttachments = [];
   
@@ -249,7 +249,7 @@ router.post('/announcements', upload_announcements_multi, async (req, res) => {
     console.log('=== ANNOUNCEMENT CREATION DEBUG ===');
     console.log('Body:', req.body);
     console.log('Files:', req.files);
-    console.log('Attachments files count:', req.files?.attachments?.length || 0);
+    console.log('Attachments files count:', (req.files && req.files.attachments) ? req.files.attachments.length : 0);
 
     const {
       title,
@@ -271,10 +271,13 @@ router.post('/announcements', upload_announcements_multi, async (req, res) => {
     if (missingFields.length > 0) {
       // Clean up uploaded files if validation fails
       if (req.files) {
-        Object.values(req.files).flat().forEach(file => {
-          if (fs.existsSync(file.path)) {
-            fs.unlinkSync(file.path);
-          }
+        Object.keys(req.files).forEach(key => {
+          const files = Array.isArray(req.files[key]) ? req.files[key] : [req.files[key]];
+          files.forEach(file => {
+            if (fs.existsSync(file.path)) {
+              fs.unlinkSync(file.path);
+            }
+          });
         });
       }
       
@@ -298,7 +301,7 @@ router.post('/announcements', upload_announcements_multi, async (req, res) => {
     }
 
     // Process attachments - both files and links
-    const attachments = processAttachments(req.files?.attachments, attachmentMetadata);
+    const attachments = processAttachments(req.files && req.files.attachments ? req.files.attachments : null, attachmentMetadata);
     console.log('Final attachments to save:', attachments);
     let date
     if(deadline){
@@ -315,12 +318,13 @@ router.post('/announcements', upload_announcements_multi, async (req, res) => {
       orange_button_link,
       blue_button_title,
       blue_button_link,
-      flag: req.files?.flag ? req.files.flag[0].path : null,
+      flag: (req.files && req.files.flag) ? req.files.flag[0].path : null,
       attachments
     });
 
-    const savedAnnouncement = await newAnnouncement.save();
-    console.log('Saved announcement with attachments:', savedAnnouncement.attachments?.length || 0);
+     console.log("newAnnouncement", newAnnouncement)
+      const savedAnnouncement = await newAnnouncement.save();
+    console.log('Saved announcement with attachments:', savedAnnouncement.attachments ? savedAnnouncement.attachments.length : 0);
 
     res.status(201).json({
       success: true,
@@ -330,13 +334,16 @@ router.post('/announcements', upload_announcements_multi, async (req, res) => {
   } catch (error) {
     // Clean up uploaded files on error
     if (req.files) {
-      Object.values(req.files).flat().forEach(file => {
-        if (fs.existsSync(file.path)) {
-          fs.unlinkSync(file.path);
-        }
+      Object.keys(req.files).forEach(key => {
+        const files = Array.isArray(req.files[key]) ? req.files[key] : [req.files[key]];
+        files.forEach(file => {
+          if (fs.existsSync(file.path)) {
+            fs.unlinkSync(file.path);
+          }
+        });
       });
     }
-    
+
     console.error('Error creating announcement:', error);
     res.status(500).json({
       success: false,
@@ -354,25 +361,28 @@ router.put('/announcements/:id', upload_announcements_multi, async (req, res) =>
     console.log('Announcement ID:', req.params.id);
     console.log('Body:', req.body);
     console.log('Files:', req.files);
-    console.log('New attachment files count:', req.files?.attachments?.length || 0);
+    console.log('New attachment files count:', (req.files && req.files.attachments) ? req.files.attachments.length : 0);
 
     const existingAnnouncement = await Announcement.findById(req.params.id);
     if (!existingAnnouncement) {
       if (req.files) {
-        Object.values(req.files).flat().forEach(file => {
-          if (fs.existsSync(file.path)) {
-            fs.unlinkSync(file.path);
-          }
+        Object.keys(req.files).forEach(key => {
+          const files = Array.isArray(req.files[key]) ? req.files[key] : [req.files[key]];
+          files.forEach(file => {
+            if (fs.existsSync(file.path)) {
+              fs.unlinkSync(file.path);
+            }
+          });
         });
       }
-      
+
       return res.status(404).json({
         success: false,
         message: 'Announcement not found'
       });
     }
 
-    console.log('Existing announcement found with attachments:', existingAnnouncement.attachments?.length || 0);
+    console.log('Existing announcement found with attachments:', existingAnnouncement.attachments ? existingAnnouncement.attachments.length : 0);
 
     const updateData = { ...req.body };
     
@@ -442,7 +452,7 @@ router.put('/announcements/:id', upload_announcements_multi, async (req, res) =>
 
     // Process new attachments (both files and links)
     if (attachmentMetadata.length > 0) {
-      const newAttachments = processAttachments(req.files?.attachments, attachmentMetadata);
+      const newAttachments = processAttachments(req.files && req.files.attachments ? req.files.attachments : null, attachmentMetadata);
       finalAttachments.push(...newAttachments);
       console.log('Added new attachments:', newAttachments.length);
     }
@@ -467,7 +477,7 @@ router.put('/announcements/:id', upload_announcements_multi, async (req, res) =>
       { new: true, runValidators: true }
     );
 
-    console.log('Updated announcement with attachments:', updatedAnnouncement.attachments?.length || 0);
+    console.log('Updated announcement with attachments:', updatedAnnouncement.attachments ? updatedAnnouncement.attachments.length : 0);
 
     res.status(200).json({
       success: true,
@@ -476,13 +486,16 @@ router.put('/announcements/:id', upload_announcements_multi, async (req, res) =>
     });
   } catch (error) {
     if (req.files) {
-      Object.values(req.files).flat().forEach(file => {
-        if (fs.existsSync(file.path)) {
-          fs.unlinkSync(file.path);
-        }
+      Object.keys(req.files).forEach(key => {
+        const files = Array.isArray(req.files[key]) ? req.files[key] : [req.files[key]];
+        files.forEach(file => {
+          if (fs.existsSync(file.path)) {
+            fs.unlinkSync(file.path);
+          }
+        });
       });
     }
-    
+
     console.error('Error updating announcement:', error);
     res.status(500).json({
       success: false,
@@ -1057,8 +1070,8 @@ router.put('/banners/:id', upload.single('background_image'), async (req, res) =
     if (banner_title_color !== undefined) updateData.banner_title_color = banner_title_color;
     if (banner_title_highlight_text !== undefined || banner_title_highlight_color !== undefined) {
       updateData.banner_title_highlight = {
-        text: banner_title_highlight_text || existingBanner.banner_title_highlight?.text || '',
-        color: banner_title_highlight_color || existingBanner.banner_title_highlight?.color || '#FFD700'
+        text: banner_title_highlight_text || (existingBanner.banner_title_highlight ? existingBanner.banner_title_highlight.text : '') || '',
+        color: banner_title_highlight_color || (existingBanner.banner_title_highlight ? existingBanner.banner_title_highlight.color : '#FFD700') || '#FFD700'
       };
     }
     if (banner_subtitle !== undefined) updateData.banner_subtitle = parsedSubtitle;
