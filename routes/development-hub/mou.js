@@ -45,9 +45,9 @@ router.post("/", upload.fields([{ name: 'partner_logo', maxCount: 1 }, { name: '
       is_active: req.body.is_active !== undefined ? req.body.is_active : true,
     };
 
-    if (req.files?.partner_logo) mouData.partner_logo = `/uploads/development-hub/${req.files.partner_logo[0].filename}`;
-    if (req.files?.document_url) mouData.document_url = `/uploads/development-hub/${req.files.document_url[0].filename}`;
-    if (req.files?.signing_ceremony_images) {
+    if (req.files && req.files.partner_logo) mouData.partner_logo = `/uploads/development-hub/${req.files.partner_logo[0].filename}`;
+    if (req.files && req.files.document_url) mouData.document_url = `/uploads/development-hub/${req.files.document_url[0].filename}`;
+    if (req.files && req.files.signing_ceremony_images) {
       mouData.signing_ceremony_images = req.files.signing_ceremony_images.map(f => `/uploads/development-hub/${f.filename}`);
     }
 

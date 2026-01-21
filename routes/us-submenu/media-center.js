@@ -59,8 +59,8 @@ router.post("/", upload.fields([
     title: req.body.title,
     description: req.body.description,
     mediaType: req.body.mediaType,
-    thumbnail: req.files?.thumbnail ? `/uploads/media-center/${req.files.thumbnail[0].filename}` : undefined,
-    mediaUrl: req.files?.media ? `/uploads/media-center/${req.files.media[0].filename}` : req.body.mediaUrl,
+    thumbnail: (req.files && req.files.thumbnail) ? `/uploads/media-center/${req.files.thumbnail[0].filename}` : undefined,
+    mediaUrl: (req.files && req.files.media) ? `/uploads/media-center/${req.files.media[0].filename}` : req.body.mediaUrl,
     content: req.body.content,
     publishDate: req.body.publishDate || Date.now(),
     author: req.body.author,
@@ -95,10 +95,10 @@ router.put("/:id", upload.fields([
       isActive: req.body.isActive,
     };
 
-    if (req.files?.thumbnail) {
+    if (req.files && req.files.thumbnail) {
       updateData.thumbnail = `/uploads/media-center/${req.files.thumbnail[0].filename}`;
     }
-    if (req.files?.media) {
+    if (req.files && req.files.media) {
       updateData.mediaUrl = `/uploads/media-center/${req.files.media[0].filename}`;
     } else if (req.body.mediaUrl) {
       updateData.mediaUrl = req.body.mediaUrl;

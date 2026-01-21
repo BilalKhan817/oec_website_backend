@@ -13,7 +13,7 @@ const emigrantsRoutes = require("./routes/emigrants/index");
 const developmentHubRoutes = require("./routes/development-hub/index");
 const mediaCenterRoutes = require("./routes/media-center/index");
 const reportsAnalyticsRoutes = require("./routes/reports-analytics/index");
-const contactUsRoutes = require("./routes/contact-us/index");
+const contactUsPageRoutes = require("./routes/contact-us");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -40,7 +40,7 @@ app.use("/api/emigrants", emigrantsRoutes);
 app.use("/api/development-hub", developmentHubRoutes);
 app.use("/api/media-center", mediaCenterRoutes);
 app.use("/api/reports-analytics", reportsAnalyticsRoutes);
-app.use("/api/contact-us", contactUsRoutes);
+app.use("/api/contact-us", contactUsPageRoutes);
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   res.status(200).json({

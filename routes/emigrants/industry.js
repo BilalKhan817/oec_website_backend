@@ -46,8 +46,8 @@ router.post("/", upload.fields([{ name: 'icon', maxCount: 1 }, { name: 'image', 
       is_active: req.body.is_active !== undefined ? req.body.is_active : true,
     };
 
-    if (req.files?.icon) industryData.icon = `/uploads/emigrants/${req.files.icon[0].filename}`;
-    if (req.files?.image) industryData.image = `/uploads/emigrants/${req.files.image[0].filename}`;
+    if (req.files && req.files.icon) industryData.icon = `/uploads/emigrants/${req.files.icon[0].filename}`;
+    if (req.files && req.files.image) industryData.image = `/uploads/emigrants/${req.files.image[0].filename}`;
 
     const industry = new Industry(industryData);
     await industry.save();
@@ -67,8 +67,8 @@ router.put("/:id", upload.fields([{ name: 'icon', maxCount: 1 }, { name: 'image'
     if (req.body.required_skills) updateData.required_skills = JSON.parse(req.body.required_skills);
     if (req.body.certifications_needed) updateData.certifications_needed = JSON.parse(req.body.certifications_needed);
 
-    if (req.files?.icon) updateData.icon = `/uploads/emigrants/${req.files.icon[0].filename}`;
-    if (req.files?.image) updateData.image = `/uploads/emigrants/${req.files.image[0].filename}`;
+    if (req.files && req.files.icon) updateData.icon = `/uploads/emigrants/${req.files.icon[0].filename}`;
+    if (req.files && req.files.image) updateData.image = `/uploads/emigrants/${req.files.image[0].filename}`;
 
     const industry = await Industry.findByIdAndUpdate(req.params.id, updateData, { new: true });
     if (!industry) return res.status(404).json({ success: false, message: "Industry not found" });

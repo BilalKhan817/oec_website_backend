@@ -61,7 +61,7 @@ router.post("/", upload.fields([
       is_active: req.body.is_active !== undefined ? req.body.is_active : true,
     };
 
-    if (req.files?.hero_image) {
+    if (req.files && req.files.hero_image) {
       pageData.hero_image = `/uploads/about-us/${req.files.hero_image[0].filename}`;
     }
 
@@ -103,7 +103,7 @@ router.put("/:id", upload.fields([
       is_active: req.body.is_active,
     };
 
-    if (req.files?.hero_image) {
+    if (req.files && req.files.hero_image) {
       updateData.hero_image = `/uploads/about-us/${req.files.hero_image[0].filename}`;
     }
 

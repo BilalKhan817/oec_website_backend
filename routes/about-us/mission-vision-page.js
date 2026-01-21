@@ -35,8 +35,8 @@ router.post("/", upload.fields([{ name: 'mission_image', maxCount: 1 }, { name: 
       is_active: req.body.is_active !== undefined ? req.body.is_active : true,
     };
 
-    if (req.files?.mission_image) pageData.mission_image = `/uploads/about-us/${req.files.mission_image[0].filename}`;
-    if (req.files?.vision_image) pageData.vision_image = `/uploads/about-us/${req.files.vision_image[0].filename}`;
+    if (req.files && req.files.mission_image) pageData.mission_image = `/uploads/about-us/${req.files.mission_image[0].filename}`;
+    if (req.files && req.files.vision_image) pageData.vision_image = `/uploads/about-us/${req.files.vision_image[0].filename}`;
 
     const existingPage = await MissionVisionPage.findOne({});
     let page = existingPage

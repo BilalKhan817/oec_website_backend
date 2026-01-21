@@ -34,7 +34,7 @@ router.post("/", upload.any(), async (req, res) => {
       is_active: req.body.is_active !== undefined ? req.body.is_active : true,
     };
 
-    if (req.files?.hero_image) {
+    if (req.files && req.files.hero_image) {
       pageData.hero_image = `/uploads/about-us/${req.files.hero_image[0].filename}`;
     }
 

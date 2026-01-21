@@ -65,8 +65,8 @@ router.post("/", upload.fields([
     title: req.body.title,
     description: req.body.description,
     reportType: req.body.reportType,
-    thumbnail: req.files?.thumbnail ? `/uploads/reports-analytics/${req.files.thumbnail[0].filename}` : undefined,
-    fileUrl: req.files?.file ? `/uploads/reports-analytics/${req.files.file[0].filename}` : req.body.fileUrl,
+    thumbnail: (req.files && req.files.thumbnail) ? `/uploads/reports-analytics/${req.files.thumbnail[0].filename}` : undefined,
+    fileUrl: (req.files && req.files.file) ? `/uploads/reports-analytics/${req.files.file[0].filename}` : req.body.fileUrl,
     publicationDate: req.body.publicationDate || Date.now(),
     year: req.body.year ? parseInt(req.body.year) : undefined,
     quarter: req.body.quarter,
@@ -101,10 +101,10 @@ router.put("/:id", upload.fields([
       isActive: req.body.isActive,
     };
 
-    if (req.files?.thumbnail) {
+    if (req.files && req.files.thumbnail) {
       updateData.thumbnail = `/uploads/reports-analytics/${req.files.thumbnail[0].filename}`;
     }
-    if (req.files?.file) {
+    if (req.files && req.files.file) {
       updateData.fileUrl = `/uploads/reports-analytics/${req.files.file[0].filename}`;
     } else if (req.body.fileUrl) {
       updateData.fileUrl = req.body.fileUrl;

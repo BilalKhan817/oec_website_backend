@@ -43,8 +43,8 @@ router.post("/", upload.fields([{ name: 'worker_photo', maxCount: 1 }, { name: '
       is_active: req.body.is_active !== undefined ? req.body.is_active : true,
     };
 
-    if (req.files?.worker_photo) storyData.worker_photo = `/uploads/development-hub/${req.files.worker_photo[0].filename}`;
-    if (req.files?.images) {
+    if (req.files && req.files.worker_photo) storyData.worker_photo = `/uploads/development-hub/${req.files.worker_photo[0].filename}`;
+    if (req.files && req.files.images) {
       storyData.images = req.files.images.map(f => `/uploads/development-hub/${f.filename}`);
     }
 

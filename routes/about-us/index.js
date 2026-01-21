@@ -2,6 +2,10 @@ const express = require("express");
 const router = express.Router();
 
 // Import sub-routes
+const aboutUsContentRoutes = require("./about-us-content");
+const oecAtGlanceRoutes = require("./oec-at-glance");
+const governingLawRoutes = require("./governing-law");
+const ourFunctionsRoutes = require("./our-functions");
 const boardOfDirectorsRoutes = require("./board-of-directors");
 const partnershipRoutes = require("./partnerships");
 
@@ -55,15 +59,15 @@ router.get("/navbar-descriptions", async (req, res) => {
     res.json({
       success: true,
       data: {
-        aboutOec: aboutOec?.navbar_description || "Leading organization for overseas employment.",
-        governingLaw: governingLaw?.navbar_description || "Legal framework and regulations governing overseas employment.",
-        oecAtGlance: oecAtGlance?.navbar_description || "Quick facts and statistics about OEC",
-        ourFunctions: ourFunctions?.navbar_description || "Core functions and services provided by OEC.",
-        ourExecutives: ourExecutives?.navbar_description || "Senior management and leadership team",
-        mdMessage: mdMessage?.navbar_description || "Message from the Managing Director",
-        missionVision: missionVision?.navbar_description || "Our mission, vision and core values",
-        achievements: achievements?.navbar_description || "Milestones and accomplishments",
-        whyChooseOec: whyChooseOec?.navbar_description || "Reasons to choose OEC for overseas employment"
+        aboutOec: (aboutOec && aboutOec.navbar_description) || "Leading organization for overseas employment.",
+        governingLaw: (governingLaw && governingLaw.navbar_description) || "Legal framework and regulations governing overseas employment.",
+        oecAtGlance: (oecAtGlance && oecAtGlance.navbar_description) || "Quick facts and statistics about OEC",
+        ourFunctions: (ourFunctions && ourFunctions.navbar_description) || "Core functions and services provided by OEC.",
+        ourExecutives: (ourExecutives && ourExecutives.navbar_description) || "Senior management and leadership team",
+        mdMessage: (mdMessage && mdMessage.navbar_description) || "Message from the Managing Director",
+        missionVision: (missionVision && missionVision.navbar_description) || "Our mission, vision and core values",
+        achievements: (achievements && achievements.navbar_description) || "Milestones and accomplishments",
+        whyChooseOec: (whyChooseOec && whyChooseOec.navbar_description) || "Reasons to choose OEC for overseas employment"
       }
     });
   } catch (error) {
@@ -77,6 +81,10 @@ router.get("/navbar-descriptions", async (req, res) => {
 });
 
 // Mount them
+router.use("/content", aboutUsContentRoutes);
+router.use("/oec-at-glance", oecAtGlanceRoutes);
+router.use("/governing-law", governingLawRoutes);
+router.use("/our-functions", ourFunctionsRoutes);
 router.use("/board-of-directors", boardOfDirectorsRoutes);
 router.use("/partnerships", partnershipRoutes);
 

@@ -34,8 +34,8 @@ router.post("/", upload.fields([{ name: 'md_photo', maxCount: 1 }, { name: 'sign
       is_active: req.body.is_active !== undefined ? req.body.is_active : true,
     };
 
-    if (req.files?.md_photo) pageData.md_photo = `/uploads/about-us/${req.files.md_photo[0].filename}`;
-    if (req.files?.signature_image) pageData.signature_image = `/uploads/about-us/${req.files.signature_image[0].filename}`;
+    if (req.files && req.files.md_photo) pageData.md_photo = `/uploads/about-us/${req.files.md_photo[0].filename}`;
+    if (req.files && req.files.signature_image) pageData.signature_image = `/uploads/about-us/${req.files.signature_image[0].filename}`;
 
     const existingPage = await MdMessagePage.findOne({});
     let page = existingPage
