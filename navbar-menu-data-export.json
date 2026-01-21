@@ -1,0 +1,274 @@
+{
+  "database": "oec_database",
+  "export_date": "2026-01-21",
+  "collections": {
+    "emigrants": {
+      "epskoreapages": [
+        {
+          "title": "Employment Permit System",
+          "description": "Government-to-government program for Korean employment",
+          "image": "https://oec.gov.pk/uploads/executives/eps.jpg"
+        }
+      ],
+      "labourcontractspages": [
+        {
+          "description": "Standard employment contracts for Korean employment.",
+          "points": [
+            "Contract Duration: 3 Years",
+            "Minimum Wage: ₩9,160/hour",
+            "Working Hours: 40 hours/week"
+          ]
+        }
+      ],
+      "epsresultspages": [
+        {
+          "description": "Latest test results and selection outcomes.",
+          "points": [
+            "15,000+ Selected 2024",
+            "85% Success Rate"
+          ]
+        }
+      ],
+      "serviceagreementspages": [
+        {
+          "service_boxes": [
+            {
+              "title": "Worker Protection",
+              "description": "Comprehensive welfare services",
+              "order": 0
+            },
+            {
+              "title": "Pre-Departure Training",
+              "description": "Skills and cultural orientation",
+              "order": 1
+            },
+            {
+              "title": "Service Agreements",
+              "description": "Foreign employment contracts",
+              "order": 2
+            }
+          ]
+        }
+      ],
+      "industriespages": [
+        {
+          "industries_we_serve": [
+            "Manufacturing - High Demand",
+            "Construction - Moderate",
+            "Fisheries - Seasonal",
+            "Agriculture - Growing"
+          ],
+          "fee_structure": [
+            "Registration Fee: PKR 2,000",
+            "Processing Fee: PKR 5,000",
+            "Protector Fee: PKR 15,000",
+            "Total: PKR 22,000"
+          ]
+        }
+      ]
+    },
+    "development_hub": {
+      "developmenthubs": [
+        {
+          "title": "Success Stories",
+          "description": "Worker achievements",
+          "order": 0
+        },
+        {
+          "title": "Projects",
+          "description": "Development initiatives",
+          "order": 1
+        },
+        {
+          "title": "Future Plans",
+          "description": "Strategic roadmap",
+          "order": 2
+        },
+        {
+          "title": "MoUs",
+          "description": "Partnerships",
+          "order": 3
+        }
+      ]
+    },
+    "media_center": {
+      "latestannouncements": [
+        {
+          "title": "Latest Announcements",
+          "image": "https://oec.gov.pk/uploads/executives/eps_2.jpg",
+          "points": [
+            "EPS Korea 2024 Results Announced",
+            "New Training Programs Launched"
+          ],
+          "order": 0
+        }
+      ],
+      "pressreleases": [
+        {
+          "points": [
+            {
+              "title": "Q4 2024 Performance",
+              "date": "Dec 15, 2024"
+            },
+            {
+              "title": "New Partnership MoU",
+              "date": "Dec 10, 2024"
+            }
+          ],
+          "order": 0
+        }
+      ],
+      "newshighlights": [
+        {
+          "points": [
+            "Record remittances in 2024",
+            "Excellence award received"
+          ],
+          "order": 0
+        }
+      ],
+      "events": [
+        {
+          "title": "Pictures Gallery",
+          "description": "Event photos and moments",
+          "image": "https://oec.gov.pk/uploads/executives/akmal_Sab.jpg",
+          "order": 0
+        },
+        {
+          "title": "Video Gallery",
+          "description": "Documentary and interviews",
+          "image": "https://oec.gov.pk/uploads/executives/md.jpg",
+          "order": 1
+        }
+      ]
+    },
+    "about_us": {
+      "aboutoecpages": [
+        {
+          "title": "About OEC",
+          "introduction": "The Overseas Employment Corporation (OEC) is Pakistan's leading organization for overseas employment.",
+          "navbar_description": "Leading organization for overseas employment."
+        }
+      ],
+      "governinglawpages": [
+        {
+          "title": "Governing Law",
+          "introduction": "Legal framework governing overseas employment in Pakistan.",
+          "navbar_description": "Legal framework and regulations governing overseas employment.",
+          "legal_points": [
+            "Emigration Ordinance 1979",
+            "Emigration Rules 1979",
+            "OEC Act 1976"
+          ]
+        }
+      ],
+      "oecatglancepages": [
+        {
+          "title": "OEC at a Glance",
+          "introduction": "Quick facts and statistics about OEC.",
+          "navbar_description": "Comprehensive overview of our organization's structure, services, and impact.",
+          "established_year": "1976",
+          "workers_sent": "11M+"
+        }
+      ],
+      "ourfunctionspages": [
+        {
+          "title": "Our Functions",
+          "introduction": "Core functions and services provided by the Overseas Employment Corporation.",
+          "navbar_description": "Core functions and services provided by OEC.",
+          "function_points": [
+            "Worker Registration",
+            "Employment Promotion"
+          ]
+        }
+      ],
+      "ourexecutivespages": [
+        {
+          "title": "Our Executives",
+          "introduction": "Meet our senior management and leadership team.",
+          "navbar_description": "Senior management and leadership team",
+          "leadership_items": [
+            {
+              "title": "Our Executives",
+              "image": "http://localhost:3000/uploads/executives/minister.jpg",
+              "order": 0
+            },
+            {
+              "title": "Managing Director",
+              "image": "http://localhost:3000/uploads/executives/md.jpg",
+              "order": 1
+            },
+            {
+              "title": "Board of Directors",
+              "image": "http://localhost:3000/uploads/executives/board.png",
+              "order": 2
+            }
+          ]
+        }
+      ],
+      "missionvisionpages": [
+        {
+          "title": "Mission & Vision",
+          "navbar_description": "Our mission, vision and core values",
+          "mission_title": "Our Mission",
+          "vision_title": "Our Vision",
+          "mission_statement": "To facilitate safe, legal, and dignified overseas employment opportunities for Pakistani workers, ensuring their rights and welfare while contributing to national development.",
+          "vision_statement": "To be the leading organization in overseas employment services, recognized for excellence, integrity, and commitment to worker welfare."
+        }
+      ],
+      "achievementspages": [
+        {
+          "title": "Achievements",
+          "introduction": "Key achievements and milestones of OEC.",
+          "navbar_description": "Milestones and accomplishments",
+          "key_achievements": [
+            "Successfully sent 11M+ workers overseas",
+            "Established partnerships with 50+ countries",
+            "Awarded Best Employment Services 2023",
+            "Launched digital worker registration system"
+          ],
+          "service_timelines": [
+            "1976 - OEC Established",
+            "1985 - First International Partnership",
+            "2000 - Digital Transformation Initiated",
+            "2010 - Worker Protection Program Launched",
+            "2020 - Online Services Portal Launched",
+            "2023 - 11 Million Workers Milestone"
+          ]
+        }
+      ],
+      "whychooseoecpages": [
+        {
+          "title": "Why Choose OEC",
+          "introduction": "Discover why OEC is your best choice for overseas employment.",
+          "navbar_description": "Reasons to choose OEC for overseas employment",
+          "key_advantages": [
+            "Government-backed credibility and trust",
+            "Comprehensive worker protection services",
+            "Free registration and placement assistance",
+            "Legal support and documentation help",
+            "Pre-departure orientation and training",
+            "Post-employment support and grievance handling",
+            "Partnerships with reputed international employers",
+            "Transparent and corruption-free processes"
+          ],
+          "why_choose_text": "OEC is Pakistan's premier organization for overseas employment, offering comprehensive services and unwavering support to workers seeking opportunities abroad."
+        }
+      ]
+    },
+    "contact_us": {
+      "headquarterspages": [],
+      "travelofficepages": [],
+      "regionaloffices": [],
+      "contactformpages": []
+    }
+  },
+  "notes": {
+    "total_collections": 22,
+    "collections_with_data": 18,
+    "empty_collections": 4,
+    "database_name": "oec_database",
+    "image_base_url": "https://oec.gov.pk/uploads/",
+    "deployment_instructions": "Import this data into MongoDB using mongoimport or mongoose seeder scripts"
+  }
+}

@@ -7,6 +7,13 @@ require('dotenv').config();
 // Import routes
 const homeRoutes = require('./routes/home');
 const aboutUsRoutes = require("./routes/about-us/index");
+const usSubmenuRoutes = require("./routes/us-submenu/index");
+const navbarRoutes = require("./routes/navbar/index");
+const emigrantsRoutes = require("./routes/emigrants/index");
+const developmentHubRoutes = require("./routes/development-hub/index");
+const mediaCenterRoutes = require("./routes/media-center/index");
+const reportsAnalyticsRoutes = require("./routes/reports-analytics/index");
+const contactUsRoutes = require("./routes/contact-us/index");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -17,7 +24,7 @@ app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // MongoDB Connection
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/announcements_db', {
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/oec_website', {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 })
@@ -27,6 +34,13 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/announcem
 // Routes
 app.use('/api', homeRoutes);
 app.use("/api/about-us", aboutUsRoutes);
+app.use("/api/us-submenu", usSubmenuRoutes);
+app.use("/api/navbar", navbarRoutes);
+app.use("/api/emigrants", emigrantsRoutes);
+app.use("/api/development-hub", developmentHubRoutes);
+app.use("/api/media-center", mediaCenterRoutes);
+app.use("/api/reports-analytics", reportsAnalyticsRoutes);
+app.use("/api/contact-us", contactUsRoutes);
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   res.status(200).json({

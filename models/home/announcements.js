@@ -69,12 +69,12 @@ const announcementSchema = new mongoose.Schema({
   attachments: [attachmentSchema], // Array of attachments
   orange_button_title: {
     type: String,
-    required: true,
+    required: false,
     trim: true
   },
   orange_button_link: {
     type: String,
-    required: true,
+    required: false,
     trim: true
   },
   blue_button_title: {

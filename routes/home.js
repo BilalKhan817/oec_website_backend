@@ -5,6 +5,8 @@ const Banner = require('../models/home/banner');
 const AboutOec = require('../models/home/aboutOec');
 const Executive = require('../models/home/executive');
 const Services = require('../models/home/services');
+const MenuItem = require('../models/home/menu');
+const TopBarButton = require('../models/home/topBarButtons');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
@@ -195,16 +197,57 @@ const processAttachments = (files, attachmentData) => {
 //////// Announcements /////
 ////////////////////////////
 
-// GET - Retrieve all announcements
-// GET - Retrieve all announcements
-router.get('/announcements', async (req, res) => {
+// GET - Retrieve all announcements for ADMIN (includes expired ones)
+router.get('/announcements/admin/all', async (req, res) => {
   try {
-    const announcements = await Announcement.find().sort({ createdAt: -1 });
-    
+    const allAnnouncements = await Announcement.find().sort({ createdAt: -1 });
+    console.log('=== ADMIN ANNOUNCEMENTS API ===');
+    console.log('Total announcements (including expired):', allAnnouncements.length);
+
     res.status(200).json({
       success: true,
-      count: announcements.length,
-      data: announcements
+      count: allAnnouncements.length,
+      data: allAnnouncements
+    });
+  } catch (error) {
+    console.error('Error fetching announcements:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching announcements',
+      error: error.message
+    });
+  }
+});
+
+// GET - Retrieve all announcements for PUBLIC (filters out expired ones)
+router.get('/announcements', async (req, res) => {
+  try {
+    const allAnnouncements = await Announcement.find().sort({ createdAt: -1 });
+    console.log('=== PUBLIC ANNOUNCEMENTS API ===');
+    console.log('Total announcements in DB:', allAnnouncements.length);
+
+    // Filter out expired announcements (only show active ones)
+    const now = new Date();
+    const activeAnnouncements = allAnnouncements.filter(announcement => {
+      // If no deadline is set, keep the announcement
+      if (!announcement.deadline) {
+        console.log(`✓ Announcement "${announcement.title}" - No deadline, keeping`);
+        return true;
+      }
+
+      // If deadline is set, only show if not expired
+      const deadline = new Date(announcement.deadline);
+      const isActive = deadline >= now;
+      console.log(`${isActive ? '✓' : '✗'} Announcement "${announcement.title}" - Deadline: ${deadline.toDateString()}, Active: ${isActive}`);
+      return isActive;
+    });
+
+    console.log('Active announcements to return:', activeAnnouncements.length);
+
+    res.status(200).json({
+      success: true,
+      count: activeAnnouncements.length,
+      data: activeAnnouncements
     });
   } catch (error) {
     console.error('Error fetching announcements:', error);
@@ -263,8 +306,7 @@ router.post('/announcements', upload_announcements_multi, async (req, res) => {
     } = req.body;
 
     const requiredFields = [
-      'title', 'announcement_category',
-      'orange_button_title', 'orange_button_link'
+      'title', 'announcement_category'
     ];
 
     const missingFields = requiredFields.filter(field => !req.body[field]);
@@ -397,7 +439,7 @@ router.put('/announcements/:id', upload_announcements_multi, async (req, res) =>
 
     // Handle attachments update
     let finalAttachments = [];
-    
+
     // Parse attachment metadata
     let attachmentMetadata = [];
     if (req.body.attachment_data) {
@@ -410,52 +452,79 @@ router.put('/announcements/:id', upload_announcements_multi, async (req, res) =>
       }
     }
 
-    // Handle existing attachments that should be kept
-    if (req.body.keep_existing_attachments) {
-      try {
-        const keepIds = JSON.parse(req.body.keep_existing_attachments);
-        console.log('Keeping existing attachments with IDs:', keepIds);
-        
-        const existingAttachmentsToKeep = existingAnnouncement.attachments.filter(attachment => 
-          keepIds.includes(attachment._id.toString())
-        );
-        finalAttachments.push(...existingAttachmentsToKeep);
-        console.log('Kept existing attachments:', existingAttachmentsToKeep.length);
-      } catch (error) {
-        console.error('Error parsing keep_existing_attachments:', error);
-      }
-    }
+    // Process attachments based on metadata
+    let fileIndex = 0;
 
-    // Handle attachments to be removed
-    if (req.body.remove_attachments) {
-      try {
-        const removeIds = JSON.parse(req.body.remove_attachments);
-        console.log('Removing attachments with IDs:', removeIds);
-        
-        const attachmentsToRemove = existingAnnouncement.attachments.filter(attachment =>
-          removeIds.includes(attachment._id.toString())
+    attachmentMetadata.forEach((metadata, index) => {
+      console.log(`Processing attachment metadata ${index}:`, metadata);
+
+      // Keep existing attachment if it has existing_id and keep_existing flag
+      if (metadata.existing_id && metadata.keep_existing) {
+        const existingAttachment = existingAnnouncement.attachments.find(
+          att => att._id.toString() === metadata.existing_id
         );
-        
-        // Delete files from filesystem for file attachments
-        attachmentsToRemove.forEach(attachment => {
-          if (attachment.attachment_type === 'attachment_file' && attachment.file_path) {
-            if (fs.existsSync(attachment.file_path)) {
-              fs.unlinkSync(attachment.file_path);
-              console.log('Deleted file:', attachment.file_path);
-            }
-          }
+
+        if (existingAttachment) {
+          // Update metadata but keep the file
+          finalAttachments.push({
+            _id: existingAttachment._id,
+            file_title: metadata.file_title,
+            icon: metadata.icon,
+            attachment_type: existingAttachment.attachment_type,
+            file_path: existingAttachment.file_path,
+            file_url: existingAttachment.file_url,
+            original_name: existingAttachment.original_name,
+            file_size: existingAttachment.file_size,
+            mime_type: existingAttachment.mime_type,
+            link_url: existingAttachment.link_url
+          });
+          console.log('Kept existing attachment:', existingAttachment._id);
+        }
+      }
+      // Add new file attachment
+      else if (metadata.attachment_type === 'attachment_file') {
+        if (req.files && req.files.attachments && req.files.attachments[fileIndex]) {
+          const file = req.files.attachments[fileIndex];
+          finalAttachments.push({
+            file_title: metadata.file_title,
+            icon: metadata.icon,
+            attachment_type: 'attachment_file',
+            file_path: file.path,
+            file_url: `/uploads/announcements/${file.filename}`,
+            original_name: file.originalname,
+            file_size: file.size,
+            mime_type: file.mimetype
+          });
+          console.log('Added new file attachment:', file.originalname);
+          fileIndex++;
+        }
+      }
+      // Add new link attachment
+      else if (metadata.attachment_type === 'link' && metadata.link_url) {
+        finalAttachments.push({
+          file_title: metadata.file_title,
+          icon: metadata.icon,
+          attachment_type: 'link',
+          link_url: metadata.link_url
         });
-      } catch (error) {
-        console.error('Error parsing remove_attachments:', error);
+        console.log('Added new link attachment:', metadata.link_url);
       }
-    }
+    });
 
-    // Process new attachments (both files and links)
-    if (attachmentMetadata.length > 0) {
-      const newAttachments = processAttachments(req.files && req.files.attachments ? req.files.attachments : null, attachmentMetadata);
-      finalAttachments.push(...newAttachments);
-      console.log('Added new attachments:', newAttachments.length);
-    }
+    // Delete removed attachments
+    const keptIds = finalAttachments.filter(a => a._id).map(a => a._id.toString());
+    const removedAttachments = existingAnnouncement.attachments.filter(
+      att => !keptIds.includes(att._id.toString())
+    );
+
+    removedAttachments.forEach(attachment => {
+      if (attachment.attachment_type === 'attachment_file' && attachment.file_path) {
+        if (fs.existsSync(attachment.file_path)) {
+          fs.unlinkSync(attachment.file_path);
+          console.log('Deleted removed file:', attachment.file_path);
+        }
+      }
+    });
 
     // Update attachments array
     updateData.attachments = finalAttachments;
@@ -468,8 +537,6 @@ router.put('/announcements/:id', upload_announcements_multi, async (req, res) =>
 
     // Remove processing fields from update data
     delete updateData.attachment_data;
-    delete updateData.keep_existing_attachments;
-    delete updateData.remove_attachments;
 
     const updatedAnnouncement = await Announcement.findByIdAndUpdate(
       req.params.id,
@@ -1853,6 +1920,351 @@ router.get('/assets', async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error listing assets',
+      error: error.message
+    });
+  }
+});
+
+/////////////////////////////
+//////// Menu Items /////////
+/////////////////////////////
+
+// GET - Retrieve all menu items (for public website)
+router.get('/menu-items', async (req, res) => {
+  try {
+    const menuItems = await MenuItem.find({ is_active: true }).sort({ order: 1 });
+
+    res.status(200).json({
+      success: true,
+      count: menuItems.length,
+      data: menuItems
+    });
+  } catch (error) {
+    console.error('Error fetching menu items:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching menu items',
+      error: error.message
+    });
+  }
+});
+
+// GET - Retrieve all menu items including inactive (for admin)
+router.get('/menu-items/admin/all', async (req, res) => {
+  try {
+    const menuItems = await MenuItem.find().sort({ order: 1 });
+
+    res.status(200).json({
+      success: true,
+      count: menuItems.length,
+      data: menuItems
+    });
+  } catch (error) {
+    console.error('Error fetching menu items:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching menu items',
+      error: error.message
+    });
+  }
+});
+
+// GET - Retrieve single menu item by ID
+router.get('/menu-items/:id', async (req, res) => {
+  try {
+    const menuItem = await MenuItem.findById(req.params.id);
+
+    if (!menuItem) {
+      return res.status(404).json({
+        success: false,
+        message: 'Menu item not found'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: menuItem
+    });
+  } catch (error) {
+    console.error('Error fetching menu item:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching menu item',
+      error: error.message
+    });
+  }
+});
+
+// POST - Create new menu item
+router.post('/menu-items', async (req, res) => {
+  try {
+    const menuItemData = req.body;
+
+    // Validation
+    if (!menuItemData.title || !menuItemData.icon) {
+      return res.status(400).json({
+        success: false,
+        message: 'Title and icon are required'
+      });
+    }
+
+    const menuItem = new MenuItem(menuItemData);
+    await menuItem.save();
+
+    res.status(201).json({
+      success: true,
+      message: 'Menu item created successfully',
+      data: menuItem
+    });
+  } catch (error) {
+    console.error('Error creating menu item:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error creating menu item',
+      error: error.message
+    });
+  }
+});
+
+// PUT - Update menu item
+router.put('/menu-items/:id', async (req, res) => {
+  try {
+    const menuItem = await MenuItem.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true, runValidators: true }
+    );
+
+    if (!menuItem) {
+      return res.status(404).json({
+        success: false,
+        message: 'Menu item not found'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Menu item updated successfully',
+      data: menuItem
+    });
+  } catch (error) {
+    console.error('Error updating menu item:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error updating menu item',
+      error: error.message
+    });
+  }
+});
+
+// DELETE - Delete menu item
+router.delete('/menu-items/:id', async (req, res) => {
+  try {
+    const menuItem = await MenuItem.findByIdAndDelete(req.params.id);
+
+    if (!menuItem) {
+      return res.status(404).json({
+        success: false,
+        message: 'Menu item not found'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Menu item deleted successfully'
+    });
+  } catch (error) {
+    console.error('Error deleting menu item:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error deleting menu item',
+      error: error.message
+    });
+  }
+});
+
+// PUT - Reorder menu items
+router.put('/menu-items/reorder/bulk', async (req, res) => {
+  try {
+    const { items } = req.body; // Array of {id, order}
+
+    if (!Array.isArray(items)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Items must be an array'
+      });
+    }
+
+    // Update each item's order
+    const updatePromises = items.map(item =>
+      MenuItem.findByIdAndUpdate(item.id, { order: item.order })
+    );
+
+    await Promise.all(updatePromises);
+
+    res.status(200).json({
+      success: true,
+      message: 'Menu items reordered successfully'
+    });
+  } catch (error) {
+    console.error('Error reordering menu items:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error reordering menu items',
+      error: error.message
+    });
+  }
+});
+
+/////////////////////////////
+//////// Top Bar Buttons ////
+/////////////////////////////
+
+// GET - Retrieve all top bar buttons (for public website)
+router.get('/top-bar-buttons', async (req, res) => {
+  try {
+    const buttons = await TopBarButton.find({ is_active: true }).sort({ order: 1 });
+
+    res.status(200).json({
+      success: true,
+      count: buttons.length,
+      data: buttons
+    });
+  } catch (error) {
+    console.error('Error fetching top bar buttons:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching top bar buttons',
+      error: error.message
+    });
+  }
+});
+
+// GET - Retrieve all top bar buttons including inactive (for admin)
+router.get('/top-bar-buttons/admin/all', async (req, res) => {
+  try {
+    const buttons = await TopBarButton.find().sort({ order: 1 });
+
+    res.status(200).json({
+      success: true,
+      count: buttons.length,
+      data: buttons
+    });
+  } catch (error) {
+    console.error('Error fetching top bar buttons:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching top bar buttons',
+      error: error.message
+    });
+  }
+});
+
+// POST - Create new top bar button
+router.post('/top-bar-buttons', async (req, res) => {
+  try {
+    const button = new TopBarButton(req.body);
+    await button.save();
+
+    res.status(201).json({
+      success: true,
+      message: 'Top bar button created successfully',
+      data: button
+    });
+  } catch (error) {
+    console.error('Error creating top bar button:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error creating top bar button',
+      error: error.message
+    });
+  }
+});
+
+// PUT - Update top bar button
+router.put('/top-bar-buttons/:id', async (req, res) => {
+  try {
+    const button = await TopBarButton.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true, runValidators: true }
+    );
+
+    if (!button) {
+      return res.status(404).json({
+        success: false,
+        message: 'Top bar button not found'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Top bar button updated successfully',
+      data: button
+    });
+  } catch (error) {
+    console.error('Error updating top bar button:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error updating top bar button',
+      error: error.message
+    });
+  }
+});
+
+// DELETE - Delete top bar button
+router.delete('/top-bar-buttons/:id', async (req, res) => {
+  try {
+    const button = await TopBarButton.findByIdAndDelete(req.params.id);
+
+    if (!button) {
+      return res.status(404).json({
+        success: false,
+        message: 'Top bar button not found'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Top bar button deleted successfully'
+    });
+  } catch (error) {
+    console.error('Error deleting top bar button:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error deleting top bar button',
+      error: error.message
+    });
+  }
+});
+
+// PUT - Reorder top bar buttons
+router.put('/top-bar-buttons/reorder/bulk', async (req, res) => {
+  try {
+    const { items } = req.body;
+
+    if (!Array.isArray(items)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Items must be an array'
+      });
+    }
+
+    const updatePromises = items.map(item =>
+      TopBarButton.findByIdAndUpdate(item.id, { order: item.order })
+    );
+
+    await Promise.all(updatePromises);
+
+    res.status(200).json({
+      success: true,
+      message: 'Top bar buttons reordered successfully'
+    });
+  } catch (error) {
+    console.error('Error reordering top bar buttons:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error reordering top bar buttons',
       error: error.message
     });
   }
