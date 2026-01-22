@@ -14,7 +14,8 @@ const contactUsSchema = new mongoose.Schema(
       address: { type: String },
       phone: { type: String },
       email: { type: String },
-      map_embed_url: { type: String }
+      latitude: { type: Number, default: 33.6844 },
+      longitude: { type: Number, default: 73.0479 }
     },
     // Regional Offices Section
     regional_offices_section: {
@@ -26,7 +27,8 @@ const contactUsSchema = new mongoose.Schema(
           address: { type: String, required: true },
           phone: { type: String, required: true },
           email: { type: String, required: true },
-          map_embed_url: { type: String }
+          latitude: { type: Number, default: 33.6844 },
+          longitude: { type: Number, default: 73.0479 }
         }
       ]
     },
@@ -36,7 +38,8 @@ const contactUsSchema = new mongoose.Schema(
       icon: { type: String, default: "✈️" },
       address: { type: String },
       phone: { type: String },
-      map_embed_url: { type: String }
+      latitude: { type: Number, default: 33.6844 },
+      longitude: { type: Number, default: 73.0479 }
     },
     // Feedback Section
     feedback_section: {
