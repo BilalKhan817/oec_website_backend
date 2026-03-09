@@ -4,7 +4,6 @@ const contactUsSchema = new mongoose.Schema(
   {
     page_title: {
       type: String,
-      required: true,
       default: "Get in Touch with OEC"
     },
     // Headquarters Section
@@ -12,8 +11,16 @@ const contactUsSchema = new mongoose.Schema(
       title: { type: String, default: "Headquarters" },
       icon: { type: String, default: "🏢" },
       address: { type: String },
-      phone: { type: String },
-      email: { type: String },
+      phones: [{ type: String }],
+      emails: [{ type: String }],
+      contact_persons: [
+        {
+          full_name: { type: String },
+          designation: { type: String },
+          phones: [{ type: String }],
+          emails: [{ type: String }]
+        }
+      ],
       latitude: { type: Number, default: 33.6844 },
       longitude: { type: Number, default: 73.0479 }
     },
@@ -23,10 +30,18 @@ const contactUsSchema = new mongoose.Schema(
       icon: { type: String, default: "🏛️" },
       offices: [
         {
-          city: { type: String, required: true },
-          address: { type: String, required: true },
-          phone: { type: String, required: true },
-          email: { type: String, required: true },
+          city: { type: String },
+          address: { type: String },
+          phones: [{ type: String }],
+          emails: [{ type: String }],
+          contact_persons: [
+            {
+              full_name: { type: String },
+              designation: { type: String },
+              phone: { type: String },
+              email: { type: String }
+            }
+          ],
           latitude: { type: Number, default: 33.6844 },
           longitude: { type: Number, default: 73.0479 }
         }
@@ -37,7 +52,16 @@ const contactUsSchema = new mongoose.Schema(
       title: { type: String, default: "OEC Travel Office" },
       icon: { type: String, default: "✈️" },
       address: { type: String },
-      phone: { type: String },
+      phones: [{ type: String }],
+      emails: [{ type: String }],
+      contact_persons: [
+        {
+          full_name: { type: String },
+          designation: { type: String },
+          phones: [{ type: String }],
+          emails: [{ type: String }]
+        }
+      ],
       latitude: { type: Number, default: 33.6844 },
       longitude: { type: Number, default: 73.0479 }
     },
@@ -45,7 +69,7 @@ const contactUsSchema = new mongoose.Schema(
     feedback_section: {
       title: { type: String, default: "Feedback" },
       icon: { type: String, default: "📝" },
-      description: { type: String, required: true }
+      description: { type: String }
     },
     is_active: {
       type: Boolean,
