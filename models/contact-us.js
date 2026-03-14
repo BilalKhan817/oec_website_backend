@@ -38,8 +38,8 @@ const contactUsSchema = new mongoose.Schema(
             {
               full_name: { type: String },
               designation: { type: String },
-              phone: { type: String },
-              email: { type: String }
+              phones: [{ type: String }],
+              emails: [{ type: String }]
             }
           ],
           latitude: { type: Number, default: 33.6844 },

@@ -42,22 +42,29 @@ router.get("/", async (req, res) => {
 
 router.post("/", upload.single('image'), async (req, res) => {
   try {
-    const pageData = {
-      title: req.body.title || '',
-      description: req.body.description || '',
-      image: req.body.image || ''
-    };
-
+    const updateFields = {};
+    if (req.body.title !== undefined) updateFields.title = req.body.title;
+    if (req.body.description !== undefined) updateFields.description = req.body.description;
     if (req.file) {
-      pageData.image = `/uploads/emigrants/${req.file.filename}`;
+      updateFields.image = `/uploads/emigrants/${req.file.filename}`;
     }
 
-    const existingPage = await EpsKoreaPage.findOne({});
-    const page = existingPage
-      ? await EpsKoreaPage.findByIdAndUpdate(existingPage._id, pageData, { new: true })
-      : await new EpsKoreaPage(pageData).save();
-
-    res.status(200).json({ success: true, data: page });
+    // Use the raw collection to avoid Mongoose findOne issues
+    const existing = await EpsKoreaPage.collection.findOne({});
+    if (existing) {
+      await EpsKoreaPage.collection.updateOne({ _id: existing._id }, { $set: updateFields });
+      const updated = await EpsKoreaPage.collection.findOne({ _id: existing._id });
+      res.status(200).json({ success: true, data: updated });
+    } else {
+      if (!updateFields.image) updateFields.image = '';
+      const result = await EpsKoreaPage.collection.insertOne({
+        ...updateFields,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      });
+      const created = await EpsKoreaPage.collection.findOne({ _id: result.insertedId });
+      res.status(200).json({ success: true, data: created });
+    }
   } catch (err) {
     res.status(400).json({ success: false, message: err.message });
   }

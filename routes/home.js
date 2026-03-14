@@ -226,9 +226,24 @@ router.get('/announcements', async (req, res) => {
     console.log('=== PUBLIC ANNOUNCEMENTS API ===');
     console.log('Total announcements in DB:', allAnnouncements.length);
 
-    // Filter out expired announcements (only show active ones)
+    // Filter out expired, inactive, and not-yet-scheduled announcements
     const now = new Date();
     const activeAnnouncements = allAnnouncements.filter(announcement => {
+      // Only show active announcements
+      if (announcement.is_active === false) {
+        console.log(`✗ Announcement "${announcement.title}" - Inactive, skipping`);
+        return false;
+      }
+
+      // If scheduled_date is set, only show if scheduled time has passed
+      if (announcement.scheduled_date) {
+        const scheduledDate = new Date(announcement.scheduled_date);
+        if (scheduledDate > now) {
+          console.log(`✗ Announcement "${announcement.title}" - Scheduled for ${scheduledDate.toISOString()}, not yet live`);
+          return false;
+        }
+      }
+
       // If no deadline is set, keep the announcement
       if (!announcement.deadline) {
         console.log(`✓ Announcement "${announcement.title}" - No deadline, keeping`);
@@ -297,6 +312,7 @@ router.post('/announcements', upload_announcements_multi, async (req, res) => {
     const {
       title,
       deadline,
+      scheduled_date,
       announcement_category,
       orange_button_title,
       orange_button_link,
@@ -355,6 +371,7 @@ router.post('/announcements', upload_announcements_multi, async (req, res) => {
     const newAnnouncement = new Announcement({
       title,
       deadline: date,
+      scheduled_date: scheduled_date ? new Date(scheduled_date) : null,
       announcement_category,
       orange_button_title,
       orange_button_link,
@@ -427,7 +444,14 @@ router.put('/announcements/:id', upload_announcements_multi, async (req, res) =>
     console.log('Existing announcement found with attachments:', existingAnnouncement.attachments ? existingAnnouncement.attachments.length : 0);
 
     const updateData = { ...req.body };
-    
+
+    // Handle scheduled_date
+    if (updateData.scheduled_date) {
+      updateData.scheduled_date = new Date(updateData.scheduled_date);
+    } else if (updateData.scheduled_date === '' || updateData.scheduled_date === null) {
+      updateData.scheduled_date = null;
+    }
+
     // Handle flag image update
     if (req.files && req.files.flag) {
       if (existingAnnouncement.flag && fs.existsSync(existingAnnouncement.flag)) {
@@ -716,6 +740,36 @@ router.delete('/announcements/:id', async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error deleting announcement',
+      error: error.message
+    });
+  }
+});
+
+// PATCH - Toggle announcement active status
+router.patch('/announcements/:id/toggle', async (req, res) => {
+  try {
+    const announcement = await Announcement.findById(req.params.id);
+
+    if (!announcement) {
+      return res.status(404).json({
+        success: false,
+        message: 'Announcement not found'
+      });
+    }
+
+    announcement.is_active = !announcement.is_active;
+    const updatedAnnouncement = await announcement.save();
+
+    res.status(200).json({
+      success: true,
+      message: `Announcement ${updatedAnnouncement.is_active ? 'activated' : 'deactivated'} successfully`,
+      data: updatedAnnouncement
+    });
+  } catch (error) {
+    console.error('Error toggling announcement status:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error toggling announcement status',
       error: error.message
     });
   }

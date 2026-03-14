@@ -61,6 +61,14 @@ const announcementSchema = new mongoose.Schema({
   deadline: {
     type: String
   },
+  scheduled_date: {
+    type: Date,
+    default: null
+  },
+  is_active: {
+    type: Boolean,
+    default: true
+  },
   announcement_category: {
     type: String,
     required: true,
