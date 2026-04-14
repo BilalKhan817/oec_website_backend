@@ -142,21 +142,15 @@ const getFileType = (mimeType) => {
 };
 
 const processAttachments = (files, attachmentData) => {
-  console.log('Processing attachments - Files:', files ? files.length : 0);
-  console.log('Processing attachments - Metadata:', attachmentData ? attachmentData.length : 0);
-  
   const processedAttachments = [];
   
   if (!attachmentData || !Array.isArray(attachmentData)) {
-    console.log('No attachment metadata provided');
     return processedAttachments;
   }
 
   let fileIndex = 0;
   
   attachmentData.forEach((metadata, index) => {
-    console.log(`Processing attachment ${index}:`, metadata);
-    
     if (metadata.attachment_type === 'attachment_file') {
       // Handle file attachments
       if (files && files[fileIndex]) {
@@ -173,7 +167,6 @@ const processAttachments = (files, attachmentData) => {
         });
         fileIndex++;
       } else {
-        console.log(`No file found for attachment ${index}`);
       }
     } else if (metadata.attachment_type === 'link') {
       // Handle link attachments
@@ -184,13 +177,10 @@ const processAttachments = (files, attachmentData) => {
           attachment_type: 'link',
           link_url: metadata.link_url
         });
-      } else {
-        console.log(`No link_url provided for link attachment ${index}`);
       }
     }
   });
 
-  console.log('Processed attachments:', processedAttachments.length);
   return processedAttachments;
 };
 /////////////////////////////
@@ -201,8 +191,6 @@ const processAttachments = (files, attachmentData) => {
 router.get('/announcements/admin/all', async (req, res) => {
   try {
     const allAnnouncements = await Announcement.find().sort({ createdAt: -1 });
-    console.log('=== ADMIN ANNOUNCEMENTS API ===');
-    console.log('Total announcements (including expired):', allAnnouncements.length);
 
     res.status(200).json({
       success: true,
@@ -223,15 +211,12 @@ router.get('/announcements/admin/all', async (req, res) => {
 router.get('/announcements', async (req, res) => {
   try {
     const allAnnouncements = await Announcement.find().sort({ createdAt: -1 });
-    console.log('=== PUBLIC ANNOUNCEMENTS API ===');
-    console.log('Total announcements in DB:', allAnnouncements.length);
 
     // Filter out expired, inactive, and not-yet-scheduled announcements
     const now = new Date();
     const activeAnnouncements = allAnnouncements.filter(announcement => {
       // Only show active announcements
       if (announcement.is_active === false) {
-        console.log(`✗ Announcement "${announcement.title}" - Inactive, skipping`);
         return false;
       }
 
@@ -239,25 +224,24 @@ router.get('/announcements', async (req, res) => {
       if (announcement.scheduled_date) {
         const scheduledDate = new Date(announcement.scheduled_date);
         if (scheduledDate > now) {
-          console.log(`✗ Announcement "${announcement.title}" - Scheduled for ${scheduledDate.toISOString()}, not yet live`);
           return false;
         }
       }
 
       // If no deadline is set, keep the announcement
       if (!announcement.deadline) {
-        console.log(`✓ Announcement "${announcement.title}" - No deadline, keeping`);
         return true;
       }
 
       // If deadline is set, only show if not expired
+      // Admin picks a date (e.g., "April 15") which is stored as midnight of that day in their local timezone.
+      // We want the announcement to remain active THROUGHOUT the selected day, so we add 24 hours
+      // to treat the deadline as end-of-day rather than start-of-day.
       const deadline = new Date(announcement.deadline);
-      const isActive = deadline >= now;
-      console.log(`${isActive ? '✓' : '✗'} Announcement "${announcement.title}" - Deadline: ${deadline.toDateString()}, Active: ${isActive}`);
+      const deadlineEndOfDay = new Date(deadline.getTime() + 24 * 60 * 60 * 1000);
+      const isActive = deadlineEndOfDay > now;
       return isActive;
     });
-
-    console.log('Active announcements to return:', activeAnnouncements.length);
 
     res.status(200).json({
       success: true,
@@ -304,11 +288,6 @@ router.get('/announcements/:id', async (req, res) => {
 // POST - Create a new announcement with multiple attachments
 router.post('/announcements', upload_announcements_multi, async (req, res) => {
   try {
-    console.log('=== ANNOUNCEMENT CREATION DEBUG ===');
-    console.log('Body:', req.body);
-    console.log('Files:', req.files);
-    console.log('Attachments files count:', (req.files && req.files.attachments) ? req.files.attachments.length : 0);
-
     const {
       title,
       deadline,
@@ -351,7 +330,6 @@ router.post('/announcements', upload_announcements_multi, async (req, res) => {
     if (attachment_data) {
       try {
         attachmentMetadata = JSON.parse(attachment_data);
-        console.log('Parsed attachment metadata:', attachmentMetadata);
       } catch (error) {
         console.error('Error parsing attachment_data:', error);
         attachmentMetadata = [];
@@ -360,7 +338,6 @@ router.post('/announcements', upload_announcements_multi, async (req, res) => {
 
     // Process attachments - both files and links
     const attachments = processAttachments(req.files && req.files.attachments ? req.files.attachments : null, attachmentMetadata);
-    console.log('Final attachments to save:', attachments);
     let date
     if(deadline){
       date= new Date(deadline)
@@ -381,9 +358,7 @@ router.post('/announcements', upload_announcements_multi, async (req, res) => {
       attachments
     });
 
-     console.log("newAnnouncement", newAnnouncement)
       const savedAnnouncement = await newAnnouncement.save();
-    console.log('Saved announcement with attachments:', savedAnnouncement.attachments ? savedAnnouncement.attachments.length : 0);
 
     res.status(201).json({
       success: true,
@@ -416,12 +391,6 @@ router.post('/announcements', upload_announcements_multi, async (req, res) => {
 // PUT - Update an announcement with multiple attachments
 router.put('/announcements/:id', upload_announcements_multi, async (req, res) => {
   try {
-    console.log('=== ANNOUNCEMENT UPDATE DEBUG ===');
-    console.log('Announcement ID:', req.params.id);
-    console.log('Body:', req.body);
-    console.log('Files:', req.files);
-    console.log('New attachment files count:', (req.files && req.files.attachments) ? req.files.attachments.length : 0);
-
     const existingAnnouncement = await Announcement.findById(req.params.id);
     if (!existingAnnouncement) {
       if (req.files) {
@@ -441,8 +410,6 @@ router.put('/announcements/:id', upload_announcements_multi, async (req, res) =>
       });
     }
 
-    console.log('Existing announcement found with attachments:', existingAnnouncement.attachments ? existingAnnouncement.attachments.length : 0);
-
     const updateData = { ...req.body };
 
     // Handle scheduled_date
@@ -458,7 +425,6 @@ router.put('/announcements/:id', upload_announcements_multi, async (req, res) =>
         fs.unlinkSync(existingAnnouncement.flag);
       }
       updateData.flag = req.files.flag[0].path;
-      console.log('Flag image updated');
     }
 
     // Handle attachments update
@@ -469,7 +435,6 @@ router.put('/announcements/:id', upload_announcements_multi, async (req, res) =>
     if (req.body.attachment_data) {
       try {
         attachmentMetadata = JSON.parse(req.body.attachment_data);
-        console.log('Parsed attachment metadata:', attachmentMetadata);
       } catch (error) {
         console.error('Error parsing attachment_data:', error);
         attachmentMetadata = [];
@@ -480,8 +445,6 @@ router.put('/announcements/:id', upload_announcements_multi, async (req, res) =>
     let fileIndex = 0;
 
     attachmentMetadata.forEach((metadata, index) => {
-      console.log(`Processing attachment metadata ${index}:`, metadata);
-
       // Keep existing attachment if it has existing_id and keep_existing flag
       if (metadata.existing_id && metadata.keep_existing) {
         const existingAttachment = existingAnnouncement.attachments.find(
@@ -502,7 +465,6 @@ router.put('/announcements/:id', upload_announcements_multi, async (req, res) =>
             mime_type: existingAttachment.mime_type,
             link_url: existingAttachment.link_url
           });
-          console.log('Kept existing attachment:', existingAttachment._id);
         }
       }
       // Add new file attachment
@@ -519,7 +481,6 @@ router.put('/announcements/:id', upload_announcements_multi, async (req, res) =>
             file_size: file.size,
             mime_type: file.mimetype
           });
-          console.log('Added new file attachment:', file.originalname);
           fileIndex++;
         }
       }
@@ -531,7 +492,6 @@ router.put('/announcements/:id', upload_announcements_multi, async (req, res) =>
           attachment_type: 'link',
           link_url: metadata.link_url
         });
-        console.log('Added new link attachment:', metadata.link_url);
       }
     });
 
@@ -545,14 +505,12 @@ router.put('/announcements/:id', upload_announcements_multi, async (req, res) =>
       if (attachment.attachment_type === 'attachment_file' && attachment.file_path) {
         if (fs.existsSync(attachment.file_path)) {
           fs.unlinkSync(attachment.file_path);
-          console.log('Deleted removed file:', attachment.file_path);
         }
       }
     });
 
     // Update attachments array
     updateData.attachments = finalAttachments;
-    console.log('Final attachments count:', finalAttachments.length);
 
     // Handle date conversion
     if (updateData.deadline) {
@@ -567,8 +525,6 @@ router.put('/announcements/:id', upload_announcements_multi, async (req, res) =>
       updateData,
       { new: true, runValidators: true }
     );
-
-    console.log('Updated announcement with attachments:', updatedAnnouncement.attachments ? updatedAnnouncement.attachments.length : 0);
 
     res.status(200).json({
       success: true,
@@ -599,10 +555,6 @@ router.put('/announcements/:id', upload_announcements_multi, async (req, res) =>
 // Additional helper route for removing individual attachments
 router.delete('/announcements/:id/attachments/:attachmentId', async (req, res) => {
   try {
-    console.log('=== DELETE ATTACHMENT DEBUG ===');
-    console.log('Announcement ID:', req.params.id);
-    console.log('Attachment ID:', req.params.attachmentId);
-
     const announcement = await Announcement.findById(req.params.id);
     if (!announcement) {
       return res.status(404).json({
@@ -623,20 +575,16 @@ router.delete('/announcements/:id/attachments/:attachmentId', async (req, res) =
     }
 
     const attachment = announcement.attachments[attachmentIndex];
-    console.log('Found attachment to delete:', attachment.file_title, attachment.attachment_type);
 
     // Delete file from filesystem if it's a file attachment
     if (attachment.attachment_type === 'attachment_file' && attachment.file_path) {
       if (fs.existsSync(attachment.file_path)) {
         fs.unlinkSync(attachment.file_path);
-        console.log('Deleted file from filesystem:', attachment.file_path);
       }
     }
 
     announcement.attachments.splice(attachmentIndex, 1);
     await announcement.save();
-
-    console.log('Attachment deleted successfully. Remaining attachments:', announcement.attachments.length);
 
     res.status(200).json({
       success: true,

@@ -12,30 +12,18 @@ const upload = multer({ storage });
 
 router.get("/", async (req, res) => {
   try {
-    console.log('[EPS KOREA] Route hit - searching database...');
-    console.log('[EPS KOREA] Model name:', EpsKoreaPage.modelName);
-    console.log('[EPS KOREA] Collection name:', EpsKoreaPage.collection.name);
-    console.log('[EPS KOREA] DB name:', EpsKoreaPage.db.name);
-    console.log('[EPS KOREA] Connection string:', EpsKoreaPage.db.client.s.url);
-
     const page = await EpsKoreaPage.findOne({});
-    console.log('[EPS KOREA] Found page:', !!page, page ? `Title: ${page.title}` : 'NO DATA');
 
     if (!page) {
       // Try direct collection query
       const directResult = await EpsKoreaPage.collection.findOne({});
-      console.log('[EPS KOREA] Direct collection query result:', !!directResult);
       if (directResult) {
-        console.log('[EPS KOREA] Direct result title:', directResult.title);
         return res.json({ success: true, data: directResult });
       }
-      console.log('[EPS KOREA] Returning 404 - no page found');
       return res.status(404).json({ success: false, message: "Page not found" });
     }
-    console.log('[EPS KOREA] Returning success with data');
     res.json({ success: true, data: page });
   } catch (err) {
-    console.log('[EPS KOREA] Error:', err.message);
     res.status(500).json({ success: false, message: err.message });
   }
 });

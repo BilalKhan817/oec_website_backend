@@ -74,7 +74,4 @@ routes.forEach(r => {
   const content = createRoute(r.model, r.path, r.dir);
   const filePath = path.join(__dirname, 'emigrants', r.file);
   fs.writeFileSync(filePath, content);
-  console.log(`Created: ${filePath}`);
 });
-
-console.log('All routes created!');
