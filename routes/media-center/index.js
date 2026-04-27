@@ -8,6 +8,7 @@ const eventRoutes = require("./event");
 const mediaResourceRoutes = require("./media-resource");
 const mediaGalleryRoutes = require("./media-gallery");
 const faqRoutes = require("./faq");
+const careerRoutes = require("./career");
 
 router.use("/latest-announcements", latestAnnouncementRoutes);
 router.use("/press-releases", pressReleaseRoutes);
@@ -16,5 +17,6 @@ router.use("/events", eventRoutes);
 router.use("/media-resources", mediaResourceRoutes);
 router.use("/media-galleries", mediaGalleryRoutes);
 router.use("/faqs", faqRoutes);
+router.use("/careers", careerRoutes);
 
 module.exports = router;
